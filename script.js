@@ -1,5 +1,6 @@
 const cells = document.querySelectorAll('.cell');
 const statusDiv = document.getElementById('status');
+const recognitionOutputDiv = document.getElementById('recognitionOutput'); // New div for recognition
 const startButton = document.getElementById('start');
 const restartButton = document.getElementById('restart');
 const playerXScoreSpan = document.getElementById('playerXScore');
@@ -9,6 +10,7 @@ let board = ['', '', '', '', '', '', '', '', ''];
 let gameActive = true;
 let playerXScore = 0;
 let playerOScore = 0;
+let recognition;
 
 // Winning conditions
 const winningConditions = [
@@ -22,16 +24,63 @@ const winningConditions = [
     [2, 4, 6]
 ];
 
+// Check for browser compatibility
+if ('webkitSpeechRecognition' in window) {
+    recognition = new webkitSpeechRecognition();
+    recognition.continuous = true; // Keep listening until manually stopped
+    recognition.interimResults = true; // Show results as they are recognized
+
+    // Start recognition
+    startButton.addEventListener('click', () => {
+        recognition.start();
+        startButton.disabled = true;
+        statusDiv.textContent = `Listening for commands...`;
+    });
+
+    // Handle results
+    recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+                transcript += event.results[i][0].transcript;
+                // Process the final recognized command
+                const cellIndex = parseCellIndex(transcript);
+                if (cellIndex !== null && gameActive) {
+                    placeMove(cellIndex);
+                }
+            } else {
+                transcript += event.results[i][0].transcript + ' '; // Add spaces for interim results
+            }
+        }
+        // Update recognition output
+        recognitionOutputDiv.textContent = `Recognized: ${transcript}`;
+    };
+
+    // Handle end of speech recognition
+    recognition.onend = () => {
+        if (!gameActive) {
+            statusDiv.textContent = 'Game has ended.';
+        }
+    };
+} else {
+    statusDiv.textContent = 'Speech recognition not supported';
+}
+
 function handleCellClick(event) {
     const cell = event.target;
     const index = cell.getAttribute('data-index');
-
+    
     if (board[index] !== '' || !gameActive) {
         return;
     }
 
+    placeMove(index);
+}
+
+function placeMove(index) {
     board[index] = currentPlayer;
-    cell.textContent = currentPlayer;
+    cells[index].textContent = currentPlayer;
+    recognitionOutputDiv.textContent = ''; // Clear recognition output after placing the move
     checkResult();
 }
 
@@ -52,12 +101,14 @@ function checkResult() {
         statusDiv.textContent = `Player ${currentPlayer} wins!`;
         updateScore(currentPlayer);
         gameActive = false;
+        recognition.stop(); // Stop recognition when game ends
         return;
     }
 
     if (!board.includes('')) {
         statusDiv.textContent = 'It\'s a draw!';
         gameActive = false;
+        recognition.stop(); // Stop recognition when game ends
         return;
     }
 
@@ -75,42 +126,20 @@ function updateScore(player) {
     }
 }
 
-function startListening() {
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-
-    recognition.start();
-
-    recognition.onresult = (event) => {
-        const command = event.results[0][0].transcript.toLowerCase();
-        handleVoiceCommand(command);
-    };
-
-    recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-    };
-}
-
-function handleVoiceCommand(command) {
-    const cellIndex = parseCellIndex(command);
-    if (cellIndex !== null) {
-        const cell = cells[cellIndex];
-        cell.click();
-    }
-}
-
 function parseCellIndex(command) {
-    const match = command.match(/place (x|o) in (top left|top middle|top right|middle left|center|middle right|bottom left|bottom middle|bottom right)/);
-    if (!match) return null;
-
     const positions = {
-        'top left': 0, 'top middle': 1, 'top right': 2,
-        'middle left': 3, 'center': 4, 'middle right': 5,
-        'bottom left': 6, 'bottom middle': 7, 'bottom right': 8
+        'top left': 0,
+        'top middle': 1,
+        'top right': 2,
+        'middle left': 3,
+        'center': 4,
+        'middle right': 5,
+        'bottom left': 6,
+        'bottom middle': 7,
+        'bottom right': 8
     };
 
-    return positions[match[2]];
+    return positions[command.toLowerCase().trim()];
 }
 
 function restartGame() {
@@ -121,8 +150,9 @@ function restartGame() {
     cells.forEach(cell => {
         cell.textContent = '';
     });
+    recognition.start(); // Restart recognition when the game restarts
 }
 
+// Event Listeners
 cells.forEach(cell => cell.addEventListener('click', handleCellClick));
-startButton.addEventListener('click', startListening);
 restartButton.addEventListener('click', restartGame);
