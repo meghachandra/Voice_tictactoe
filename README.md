@@ -18,16 +18,16 @@ Voice Commands
 Here are the commands you can use to play:
 
 # Place Commands:
-/place x in top left
-/place x in top middle
-/place x in top right
-/place x in middle left
-/place x in center
-/place x in middle right
-/place x in bottom left
-/place x in bottom middle
-/place x in bottom right
-(Replace x with o for the second player)
+* /place x in top left
+* /place x in top middle
+* /place x in top right
+* /place x in middle left
+* /place x in center
+* /place x in middle right
+* /place x in bottom left
+* /place x in bottom middle
+* /place x in bottom right
+* (Replace x with o for the second player)
 
 # Installation
 1.Clone this repository:
