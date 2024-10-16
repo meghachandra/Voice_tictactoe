@@ -9,25 +9,26 @@ Voice Commands: Use commands to place your moves with ease.
 How to Play
 * Start Listening: Click the "Start Listening" button to enable voice commands.
 * Make Your Move: Use the following commands to place your mark:
-/place x in top left
-/place o in middle right
 (And so on for all positions)
 * Winning: The game checks for a win after each move. The player with three in a row (horizontally, vertically, or diagonally) wins!
 * Restart Game: If you want to play again, just click the "Restart" button.
-Voice Commands
-Here are the commands you can use to play:
 
+
+# Here are the commands you can use to play:
+To play Voice Tic Tac Toe, use the following commands:
+
+* Say "[position]" to play as Current Player: X (by default).
+* Say "[position]" to play as Current Player: O.
 # Place Commands:
-* /place x in top left
-* /place x in top middle
-* /place x in top right
-* /place x in middle left
-* /place x in center
-* /place x in middle right
-* /place x in bottom left
-* /place x in bottom middle
-* /place x in bottom right
-* (Replace x with o for the second player)
+* top left
+* top middle
+* top right
+* middle left
+* center
+*  middle right
+* bottom left
+* bottom middle
+* bottom right
 
 # Installation
 1.Clone this repository:
