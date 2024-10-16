@@ -1,6 +1,6 @@
 const cells = document.querySelectorAll('.cell');
 const statusDiv = document.getElementById('status');
-const recognitionOutputDiv = document.getElementById('recognitionOutput'); // New div for recognition
+const recognitionOutputDiv = document.getElementById('recognitionOutput');
 const startButton = document.getElementById('start');
 const restartButton = document.getElementById('restart');
 const playerXScoreSpan = document.getElementById('playerXScore');
@@ -27,8 +27,8 @@ const winningConditions = [
 // Check for browser compatibility
 if ('webkitSpeechRecognition' in window) {
     recognition = new webkitSpeechRecognition();
-    recognition.continuous = true; // Keep listening until manually stopped
-    recognition.interimResults = true; // Show results as they are recognized
+    recognition.continuous = true;
+    recognition.interimResults = true;
 
     // Start recognition
     startButton.addEventListener('click', () => {
@@ -43,16 +43,15 @@ if ('webkitSpeechRecognition' in window) {
         for (let i = event.resultIndex; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
                 transcript += event.results[i][0].transcript;
-                // Process the final recognized command
                 const cellIndex = parseCellIndex(transcript);
-                if (cellIndex !== null && gameActive) {
+                // Only place move if it matches current player
+                if (cellIndex !== null && gameActive && board[cellIndex] === '') {
                     placeMove(cellIndex);
                 }
             } else {
-                transcript += event.results[i][0].transcript + ' '; // Add spaces for interim results
+                transcript += event.results[i][0].transcript + ' ';
             }
         }
-        // Update recognition output
         recognitionOutputDiv.textContent = `Recognized: ${transcript}`;
     };
 
@@ -69,7 +68,8 @@ if ('webkitSpeechRecognition' in window) {
 function handleCellClick(event) {
     const cell = event.target;
     const index = cell.getAttribute('data-index');
-    
+
+    // Prevent move if the cell is already filled or game has ended
     if (board[index] !== '' || !gameActive) {
         return;
     }
@@ -78,6 +78,11 @@ function handleCellClick(event) {
 }
 
 function placeMove(index) {
+    // Only allow placing a move if the cell is empty
+    if (board[index] !== '') {
+        return;
+    }
+    
     board[index] = currentPlayer;
     cells[index].textContent = currentPlayer;
     recognitionOutputDiv.textContent = ''; // Clear recognition output after placing the move
@@ -112,7 +117,7 @@ function checkResult() {
         return;
     }
 
-    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X'; // Switch player
     statusDiv.textContent = `Current Player: ${currentPlayer}`;
 }
 
@@ -145,7 +150,7 @@ function parseCellIndex(command) {
 function restartGame() {
     board = ['', '', '', '', '', '', '', '', ''];
     gameActive = true;
-    currentPlayer = 'X';
+    currentPlayer = 'X'; // Reset to Player X
     statusDiv.textContent = `Current Player: ${currentPlayer}`;
     cells.forEach(cell => {
         cell.textContent = '';
